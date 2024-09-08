@@ -11,6 +11,7 @@ declare(strict_types=1);
 define('ALLOW_DIRECT_ACCESS', true);
 
 require_once 'config.php';
+require_once 'Database.php';
 
 
 // Підключення до бази даних
@@ -18,31 +19,24 @@ if (!isset($conn)) {
     require_once 'setup_db_1.php';
 }
 
-// Отримуємо дані з бази
+// Створюємо підключення до бази даних
 try {
-    if ($config['db']['driver'] === 'sqlite') {
-        $conn = new PDO('sqlite:' . $config['db']['sqlite']['path']);
-    } elseif ($config['db']['driver'] === 'mysql') {
-        $dsn = sprintf(
-            'mysql:host=%s;dbname=%s;charset=%s',
-            $config['db']['mysql']['host'],
-            $config['db']['mysql']['dbname'],
-            $config['db']['mysql']['charset']
-        );
-        $conn = new PDO($dsn, $config['db']['mysql']['user'], $config['db']['mysql']['password']);
-    } else {
-        throw new Exception("Непідтримуваний драйвер бази даних: " . $config['db']['driver']);
-    }
+    /** @var array $config */
+    $database = new Database($config);
+    $conn = $database->getConnection();
 
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    // Отримуємо дані
-    $sql = "SELECT date, time_period, systolic_pressure, diastolic_pressure, pulse FROM pressure_pulse_log WHERE user_id = 1 ORDER BY date DESC";
-    $stmt = $conn->query($sql);
 } catch (PDOException $e) {
     die("Помилка підключення до бази даних: " . $e->getMessage());
 } catch (Exception $e) {
     die("Помилка: " . $e->getMessage());
+}
+
+// Отримуємо дані з бази
+try {
+    $sql = "SELECT date, time_period, systolic_pressure, diastolic_pressure, pulse FROM pressure_pulse_log WHERE user_id = 1 ORDER BY date DESC";
+    $stmt = $conn->query($sql);
+} catch (PDOException $e) {
+    die("Помилка підключення до бази даних: " . $e->getMessage());
 }
 
 ?>

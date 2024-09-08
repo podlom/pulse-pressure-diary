@@ -11,6 +11,7 @@ declare(strict_types=1);
 session_start();
 
 require_once 'config.php';
+require_once 'Database.php';
 
 // Check if the request is a POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -76,65 +77,17 @@ if (!empty($errors)) {
 }
 
 try {
-    if ($config['db']['driver'] === 'sqlite') {
-        $dbFile = $config['db']['sqlite']['path'];
-
-        // Підключення до SQLite
-        $conn = new PDO('sqlite:' . $dbFile);
-    } elseif ($config['db']['driver'] === 'mysql') {
-        // Підключення до MySQL
-        $dsn = sprintf(
-            'mysql:host=%s;dbname=%s;charset=%s',
-            $config['db']['mysql']['host'],
-            $config['db']['mysql']['dbname'],
-            $config['db']['mysql']['charset']
-        );
-        $conn = new PDO($dsn, $config['db']['mysql']['user'], $config['db']['mysql']['password']);
-    } else {
-        throw new Exception("Непідтримуваний драйвер бази даних: " . $config['db']['driver']);
-    }
-
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    // Перевірка існування таблиці та створення її, якщо необхідно
-    $createTableSQL = "";
-
-    if ($config['db']['driver'] === 'sqlite') {
-        $createTableSQL = "CREATE TABLE IF NOT EXISTS pressure_pulse_log (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            date TEXT NOT NULL,
-            time_period TEXT NOT NULL,
-            systolic_pressure INTEGER NOT NULL,
-            diastolic_pressure INTEGER NOT NULL,
-            pulse INTEGER NOT NULL
-        );";
-    } elseif ($config['db']['driver'] === 'mysql') {
-        $createTableSQL = "CREATE TABLE IF NOT EXISTS pressure_pulse_log (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT,
-            date DATE NOT NULL,
-            time_period VARCHAR(50) NOT NULL,
-            systolic_pressure INT NOT NULL,
-            diastolic_pressure INT NOT NULL,
-            pulse INT NOT NULL
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-    }
-
-    $conn->exec($createTableSQL);
-
-    // Отримуємо дані з форми
-    $date = $_POST['date'];
-    $time_period = $_POST['time_period'];
-    $systolic_pressure = $_POST['systolic_pressure'];
-    $diastolic_pressure = $_POST['diastolic_pressure'];
-    $pulse = $_POST['pulse'];
+    /** @var array $config */
+    $database = new Database($config);
+    $conn = $database->getConnection();
+    $database->createTable();
 
     // Збереження даних у базу
     $stmt = $conn->prepare("INSERT INTO pressure_pulse_log (user_id, date, time_period, systolic_pressure, diastolic_pressure, pulse) VALUES (?, ?, ?, ?, ?, ?)");
     $user_id = 1; // Якщо є авторизація, можна додати унікального користувача
     $stmt->execute([$user_id, $date, $time_period, $systolic_pressure, $diastolic_pressure, $pulse]);
 
+    // TODO: перевірити чи треба це тут ?
     if (isset($_SESSION['form_errors']) && !empty($_SESSION['form_errors'])) {
         // Очищаємо помилки після успішного запису
         unset($_SESSION['form_errors']);
