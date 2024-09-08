@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
+
+/**
+ * @author Taras Shkodenko <podlom@gmail.com>
+ * @copyright Shkodenko V. Taras 2024
+ */
+
 session_start();
 
-  /**
-   * @author Taras Shkodenko <podlom@gmail.com>
-   * @copyright Shkodenko V. Taras 2024
-   */
+require_once 'config.php';
 
 // Check if the request is a POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -72,38 +75,77 @@ if (!empty($errors)) {
     exit;
 }
 
-// Підключення до бази SQLite
-$dbFile = 'data/pressure_pulse_log.db';
-if (!file_exists($dbFile)) {
-    require_once 'setup_db_1.php';
+try {
+    if ($config['db']['driver'] === 'sqlite') {
+        $dbFile = $config['db']['sqlite']['path'];
+
+        // Підключення до SQLite
+        $conn = new PDO('sqlite:' . $dbFile);
+    } elseif ($config['db']['driver'] === 'mysql') {
+        // Підключення до MySQL
+        $dsn = sprintf(
+            'mysql:host=%s;dbname=%s;charset=%s',
+            $config['db']['mysql']['host'],
+            $config['db']['mysql']['dbname'],
+            $config['db']['mysql']['charset']
+        );
+        $conn = new PDO($dsn, $config['db']['mysql']['user'], $config['db']['mysql']['password']);
+    } else {
+        throw new Exception("Непідтримуваний драйвер бази даних: " . $config['db']['driver']);
+    }
+
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // Перевірка існування таблиці та створення її, якщо необхідно
+    $createTableSQL = "";
+
+    if ($config['db']['driver'] === 'sqlite') {
+        $createTableSQL = "CREATE TABLE IF NOT EXISTS pressure_pulse_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            date TEXT NOT NULL,
+            time_period TEXT NOT NULL,
+            systolic_pressure INTEGER NOT NULL,
+            diastolic_pressure INTEGER NOT NULL,
+            pulse INTEGER NOT NULL
+        );";
+    } elseif ($config['db']['driver'] === 'mysql') {
+        $createTableSQL = "CREATE TABLE IF NOT EXISTS pressure_pulse_log (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT,
+            date DATE NOT NULL,
+            time_period VARCHAR(50) NOT NULL,
+            systolic_pressure INT NOT NULL,
+            diastolic_pressure INT NOT NULL,
+            pulse INT NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+    }
+
+    $conn->exec($createTableSQL);
+
+    // Отримуємо дані з форми
+    $date = $_POST['date'];
+    $time_period = $_POST['time_period'];
+    $systolic_pressure = $_POST['systolic_pressure'];
+    $diastolic_pressure = $_POST['diastolic_pressure'];
+    $pulse = $_POST['pulse'];
+
+    // Збереження даних у базу
+    $stmt = $conn->prepare("INSERT INTO pressure_pulse_log (user_id, date, time_period, systolic_pressure, diastolic_pressure, pulse) VALUES (?, ?, ?, ?, ?, ?)");
+    $user_id = 1; // Якщо є авторизація, можна додати унікального користувача
+    $stmt->execute([$user_id, $date, $time_period, $systolic_pressure, $diastolic_pressure, $pulse]);
+
+    if (isset($_SESSION['form_errors']) && !empty($_SESSION['form_errors'])) {
+        // Очищаємо помилки після успішного запису
+        unset($_SESSION['form_errors']);
+    }
+
+    // Переадресація після збереження
+    header("Location: index.php");
+    exit;
+
+} catch (PDOException $e) {
+    die("Помилка підключення до бази даних: " . $e->getMessage());
+} catch (Exception $e) {
+    die("Помилка: " . $e->getMessage());
 }
-$conn = new PDO('sqlite:' . $dbFile);
-
-// Перевіряємо, чи існує таблиця 'pressure_pulse_log', і якщо ні, створюємо її
-$tableCheck = $conn->query("SELECT name FROM sqlite_master WHERE type='table' AND name='pressure_pulse_log'");
-$tableExists = $tableCheck->fetch();
-
-if (!$tableExists) {
-    // Створюємо таблицю, якщо вона не існує
-    $conn->exec("CREATE TABLE IF NOT EXISTS pressure_pulse_log (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        date TEXT NOT NULL,
-        time_period TEXT NOT NULL,
-        systolic_pressure INTEGER NOT NULL,
-        diastolic_pressure INTEGER NOT NULL,
-        pulse INTEGER NOT NULL
-    );");
-}
-
-// Збереження даних у базу
-$stmt = $conn->prepare("INSERT INTO pressure_pulse_log (user_id, date, time_period, systolic_pressure, diastolic_pressure, pulse) VALUES (?, ?, ?, ?, ?, ?)");
-$user_id = 1; // Якщо є авторизація, можна додати унікального користувача
-$stmt->execute([$user_id, $date, $time_period, $systolic_pressure, $diastolic_pressure, $pulse]);
-
-if (isset($_SESSION['form_errors']) && !empty($_SESSION['form_errors'])) {
-    // Очищаємо помилки після успішного запису
-    unset($_SESSION['form_errors']);
-}
-
-header("Location: index.php"); // Переадресація після збереження
