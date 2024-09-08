@@ -1,2 +1,6 @@
 # ignore data directory and all its files
 data/*
+# ignore local config.php
+config.php
+# ignore env
+.env
