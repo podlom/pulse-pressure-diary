@@ -25,18 +25,14 @@ try {
     $database = new Database($config);
     $conn = $database->getConnection();
 
-} catch (PDOException $e) {
-    die("Помилка підключення до бази даних: " . $e->getMessage());
-} catch (Exception $e) {
-    die("Помилка: " . $e->getMessage());
-}
-
-// Отримуємо дані з бази
-try {
+    // Отримуємо дані з бази
     $sql = "SELECT date, time_period, systolic_pressure, diastolic_pressure, pulse FROM pressure_pulse_log WHERE user_id = 1 ORDER BY date DESC";
     $stmt = $conn->query($sql);
+
 } catch (PDOException $e) {
-    die("Помилка підключення до бази даних: " . $e->getMessage());
+    die(__FILE__ . ' +' . __LINE__ . " Помилка підключення до бази даних: " . $e->getMessage());
+} catch (Exception $e) {
+    die(__FILE__ . ' +' . __LINE__ . " Помилка: " . $e->getMessage());
 }
 
 ?>
