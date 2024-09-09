@@ -2,31 +2,19 @@
 
 declare(strict_types=1);
 
-
 /**
  * @author Taras Shkodenko <podlom@gmail.com>
  * @copyright Shkodenko V. Taras 2024
  */
 
+
 require_once 'config.php';
+require_once 'Database.php';
 
 try {
-    if ($config['db']['driver'] === 'sqlite') {
-        $dbFile = $config['db']['sqlite']['path'];
-        $conn = new PDO('sqlite:' . $dbFile);
-    } elseif ($config['db']['driver'] === 'mysql') {
-        $dsn = sprintf(
-            'mysql:host=%s;dbname=%s;charset=%s',
-            $config['db']['mysql']['host'],
-            $config['db']['mysql']['dbname'],
-            $config['db']['mysql']['charset']
-        );
-        $conn = new PDO($dsn, $config['db']['mysql']['user'], $config['db']['mysql']['password']);
-    } else {
-        throw new Exception("Непідтримуваний драйвер бази даних: " . $config['db']['driver']);
-    }
-
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    /** @var array $config */
+    $database = new Database($config);
+    $conn = $database->getConnection();
 
     // Отримуємо дані з таблиці
     $sql = "SELECT date, time_period, systolic_pressure, diastolic_pressure, pulse FROM pressure_pulse_log WHERE user_id = 1 ORDER BY date DESC";
