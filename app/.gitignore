@@ -4,3 +4,7 @@ data/*
 config.php
 # ignore env
 .env
+# ignore vendor folder
+vendor/*
+# ignore composer.lock
+composer.lock

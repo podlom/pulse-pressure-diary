@@ -6,7 +6,12 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     libonig-dev \
     libzip-dev \
+    unzip \
+    git \
     && docker-php-ext-install pdo pdo_sqlite pdo_mysql
+
+# Встановлюємо Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Копіюємо файли проекту в контейнер
 COPY . /var/www/html/
@@ -19,5 +24,9 @@ RUN chmod -Rv 755 /var/www/html/data
 # Встановлюємо права на папку для завантаження
 RUN chown -R www-data:www-data /var/www/html
 RUN chmod -R 755 /var/www/html
+
+# Встановлюємо залежності проекту через Composer
+WORKDIR /var/www/html
+RUN composer install --no-dev --optimize-autoloader
 
 EXPOSE 80
