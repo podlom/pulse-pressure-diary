@@ -24,6 +24,7 @@ class Database
     public function __construct(array $config)
     {
         $this->driver = $config['db']['driver'];
+        // die(__FILE__ . ' +' . __LINE__ . ' driver: ' . var_export($this->driver, true));
 
         try {
             if ($this->driver === 'sqlite') {
@@ -43,9 +44,9 @@ class Database
 
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            die("Помилка підключення до бази даних: " . $e->getMessage());
+            die(__FILE__ . ' +' . __LINE__ . " Помилка підключення до бази даних: " . $e->getMessage());
         } catch (Exception $e) {
-            die("Помилка: " . $e->getMessage());
+            die(__FILE__ . ' +' . __LINE__ . " Помилка: " . $e->getMessage());
         }
     }
 

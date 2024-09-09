@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+
 /**
  * @author Taras Shkodenko <podlom@gmail.com>
  * @copyright Shkodenko V. Taras 2024
  */
 
+// Define a constant to be used for allowing direct access
+define('ALLOW_DIRECT_ACCESS', true);
 
 require_once 'config.php';
 require_once 'Database.php';
