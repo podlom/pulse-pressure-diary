@@ -35,6 +35,8 @@ try {
     die(__FILE__ . ' +' . __LINE__ . " Помилка: " . $e->getMessage());
 }
 
+$n = 0;
+
 ?>
 
     <!DOCTYPE html>
@@ -69,11 +71,12 @@ try {
                     <td><?php echo $row['diastolic_pressure']; ?></td>
                     <td><?php echo $row['pulse']; ?></td>
                 </tr>
+            <?php $n ++; ?>
             <?php endwhile; ?>
             </tbody>
         </table>
         <p>Додати ще один запис через <a href='add_data.php'>форму додавання даних</a>.</p>
-        <p>Вивантаження введених даних. <a href="export_csv.php" target="_blank">Експортувати дані в CSV</a>.</p>
+        <?php if ($n > 0) { ?><p>Вивантаження введених даних. <a href="export_csv.php" target="_blank">Експортувати дані в CSV</a>.</p><?php } ?>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
