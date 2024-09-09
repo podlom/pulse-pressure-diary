@@ -10,15 +10,19 @@ declare(strict_types=1);
 
 session_start();
 
-require_once 'config.php';
-require_once 'Database.php';
-
 // Check if the request is a POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     // If not a POST request, block access
     header('HTTP/1.1 403 Forbidden');
     exit('Direct access to this file is not allowed.');
+} else {
+    // Define a constant to be used for allowing direct access
+    define('ALLOW_DIRECT_ACCESS', true);
 }
+
+require_once 'config.php';
+require_once 'Database.php';
+
 
 // Initialize an array to hold error messages
 $errors = [];
