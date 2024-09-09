@@ -13,7 +13,7 @@ cp -v .env_example.txt .env
 cp -v config_example.php config.php
 ```
 
-Оберіть тип бази даних опція DB_DRIVER може мати значення sqlite (за замовчуванням).
+Оберіть тип бази даних опція DB_DRIVER може мати значення **sqlite** (за замовчуванням).
 В такому випадку треба відповідним чином налаштувати параметр path в масиві файлу config.php
 
 ```php
@@ -28,13 +28,14 @@ $config = [
 Якщо ви хочете використовувати MySQL, тоді створіть базу даних, користувача, а також налаштуйте параметри:
 
 ```dotenv
+DB_DRIVER=mysql
 DB_HOST=yourDbName
 DB_NAME=pressure_pulse_log
 DB_USER=your_db_user
 DB_PASSWORD=your_mysql_password
 ```
 
-Для запуску проекту в Docker середовищі переконайтесь, що значення середовища бази даних з файлу app/docker-compose.yml відповідають вашим налаштуванням у файлі app/.env
+Для запуску проєкту в Docker середовищі переконайтесь, що значення середовища бази даних з файлу app/docker-compose.yml відповідають вашим налаштуванням у файлі app/.env
 
 ```yaml
       - db
