@@ -13,7 +13,6 @@ define('ALLOW_DIRECT_ACCESS', true);
 require_once 'config.php';
 require_once 'Database.php';
 
-
 // Підключення до бази даних
 if (!isset($conn)) {
     require_once 'setup_db_1.php';

@@ -2,17 +2,14 @@
 
 declare(strict_types=1);
 
-
 /**
  * @author Taras Shkodenko <podlom@gmail.com>
- * @copyright Shkodenko V. Taras 2024
+ * @copyright Shkodenko V. Taras 2025
  */
 
 require_once __DIR__ . '/vendor/autoload.php'; // Якщо використовуєш Composer
 
-
 use Dotenv\Dotenv;
-
 
 // Завантаження змінних середовища з .env
 $dotenv = Dotenv::createImmutable(__DIR__);
@@ -24,13 +21,15 @@ $host = $_ENV['DB_HOST'] ?: 'localhost';
 $dbname = $_ENV['DB_NAME'] ?: 'pressure_pulse_log';
 $user = $_ENV['DB_USER'] ?: 'root';
 $password = $_ENV['DB_PASSWORD'] ?: '';
-$charset = 'utf8mb4';
+$charset = $_ENV['DB_CHARSET'] ?: 'utf8mb4';
+$tableName = $_ENV['TABLE_NAME'] ?: 'pressure_pulse_log';
+$usersTableName = $_ENV['TABLE_USERS'] ?: 'users';
 
 $config = [
     'db' => [
         'driver' => $driver,
         'sqlite' => [
-            'path' => __DIR__ . '/data/pressure_pulse_log.db',
+            'path' => __DIR__ . '/data/' . $dbname . '.db',
         ],
         'mysql' => [
             'host' => $host,
@@ -39,5 +38,7 @@ $config = [
             'password' => $password,
             'charset' => $charset,
         ],
+        'tableName' => $tableName,
+        'usersTableName' => $usersTableName,
     ],
 ];
