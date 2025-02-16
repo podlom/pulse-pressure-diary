@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-
 /**
  * @author Taras Shkodenko <podlom@gmail.com>
- * @copyright Shkodenko V. Taras 2024
+ * @copyright Shkodenko V. Taras 2025
  */
 
 // Define a constant to be used for allowing direct access
@@ -23,13 +22,12 @@ use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-
-
 try {
     /** @var array $config */
     $database = new Database($config);
     $conn = $database->getConnection();
-    // $database->createTable();
+    $table = $database->getTableName();
+    $userId = $_SESSION['user_id'] ?: 1;
 
     // Шлях до файлу CSV
     $csvFile = __DIR__ . '/data/import.csv';
@@ -46,7 +44,7 @@ try {
         fgetcsv($handle);
 
         // Підготовка SQL для вставки даних
-        $stmt = $conn->prepare("INSERT INTO pressure_pulse_log (user_id, date, time_period, systolic_pressure, diastolic_pressure, pulse) 
+        $stmt = $conn->prepare("INSERT INTO {$table} (user_id, date, time_period, systolic_pressure, diastolic_pressure, pulse) 
                             VALUES (:user_id, :date, :time_period, :systolic_pressure, :diastolic_pressure, :pulse)");
 
         // Вставляємо кожний рядок з CSV у базу даних
@@ -60,7 +58,7 @@ try {
 
             // Вставляємо в базу даних
             $stmt->execute([
-                ':user_id' => 1, // Тут ти можеш підставити актуального користувача
+                ':user_id' => $userId,
                 ':date' => $date,
                 ':time_period' => $time_period,
                 ':systolic_pressure' => $systolic_pressure,

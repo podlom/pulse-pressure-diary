@@ -18,14 +18,23 @@ if (!isset($conn)) {
     require_once 'setup_db_1.php';
 }
 
+session_start();
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
 // Створюємо підключення до бази даних
 try {
     /** @var array $config */
     $database = new Database($config);
     $conn = $database->getConnection();
+    $table = $database->getTableName();
+    $userId = $_SESSION['user_id'] ?: 1;
 
     // Отримуємо дані з бази
-    $sql = "SELECT date, time_period, systolic_pressure, diastolic_pressure, pulse FROM pressure_pulse_log WHERE user_id = 1 ORDER BY date DESC";
+    $sql = "SELECT date, time_period, systolic_pressure, diastolic_pressure, pulse FROM {$table} WHERE user_id = {$userId} ORDER BY date DESC";
     $stmt = $conn->query($sql);
 
 } catch (PDOException $e) {

@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-
 /**
  * @author Taras Shkodenko <podlom@gmail.com>
- * @copyright Shkodenko V. Taras 2024
+ * @copyright Shkodenko V. Taras 2025
  */
 
 // Define a constant to be used for allowing direct access
@@ -18,14 +17,16 @@ try {
     /** @var array $config */
     $database = new Database($config);
     $conn = $database->getConnection();
+    $table = $database->getTableName();
+    $userId = $_SESSION['user_id'] ?: 1;
 
     // Отримуємо дані з таблиці
-    $sql = "SELECT date, time_period, systolic_pressure, diastolic_pressure, pulse FROM pressure_pulse_log WHERE user_id = 1 ORDER BY date DESC";
+    $sql = "SELECT date, time_period, systolic_pressure, diastolic_pressure, pulse FROM {$table} WHERE user_id = {$userId} ORDER BY date DESC";
     $stmt = $conn->query($sql);
 
     // Встановлюємо заголовки для експорту у CSV
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename=pressure_pulse_log.csv');
+    header('Content-Disposition: attachment; filename=' . $table . '.csv');
 
     // Відкриваємо потік для запису даних у CSV
     $output = fopen('php://output', 'w');
