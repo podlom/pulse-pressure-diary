@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * @author Taras Shkodenko <podlom@gmail.com>
- * @copyright Shkodenko V. Taras 2024
+ * @copyright Shkodenko V. Taras 2025
  */
 
 // Define a constant to be used for allowing direct access
@@ -59,6 +59,12 @@ $n = 0;
     <body>
     <div class="container">
         <h1>Щоденник показників вимірювання тиску та пульсу</h1>
+
+        <?php
+            echo "Привіт, " . htmlspecialchars($_SESSION['user_name']);
+            echo '<br><a href="logout.php">Вийти з щоденника</a>';
+        ?>
+
         <table>
             <caption>Дані записів щоденника показників тиску та пусльсу</caption>
             <thead>
