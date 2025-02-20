@@ -30,6 +30,12 @@ session_start();
 <body>
     <div class="container">
         <h1><a href="/" title="Щоденник показників вимірювання тиску та пульсу | записи щоденника">Щоденник тиску та пульсу</a> - додати новий запис</h1>
+
+        <?php
+            echo "Привіт, " . htmlspecialchars($_SESSION['user_name']);
+            echo '<br><a href="logout.php">Вийти з щоденника</a>';
+        ?>
+
         <?php
 
             // Перевіряємо, чи є збережені помилки у сесії
