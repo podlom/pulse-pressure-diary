@@ -1,10 +1,29 @@
-version: '3'
+version: '3.8'
+
 services:
   web:
     build: .
     ports:
-      - "8080:80"
+      - "80:80"
     volumes:
-      - .:/var/www/html/
+      - .:/var/www/html
+    depends_on:
+      - db
     environment:
-      - APACHE_DOCUMENT_ROOT=/var/www/html/
+      DB_DRIVER: ${DB_DRIVER:-sqlite} # За замовчуванням sqlite
+      DB_HOST: db
+      DB_NAME: pressure_pulse_log
+      DB_USER: root
+      DB_PASSWORD: your_mysql_password
+
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: your_mysql_password
+      MYSQL_DATABASE: pressure_pulse_log
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
