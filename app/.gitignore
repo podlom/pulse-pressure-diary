@@ -1,2 +1,12 @@
 # ignore data directory and all its files
 data/*
+# ignore local config.php
+config.php
+# ignore env
+.env
+# ignore vendor folder
+vendor/*
+# ignore composer.lock
+composer.lock
+# ignore phpStorm IDE config files
+.idea/*

@@ -2,19 +2,26 @@
 
 declare(strict_types=1);
 
-session_start();
+/**
+ * @author Taras Shkodenko <podlom@gmail.com>
+ * @copyright Shkodenko V. Taras 2025
+ */
 
-  /**
-   * @author Taras Shkodenko <podlom@gmail.com>
-   * @copyright Shkodenko V. Taras 2024
-   */
+session_start();
 
 // Check if the request is a POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     // If not a POST request, block access
     header('HTTP/1.1 403 Forbidden');
     exit('Direct access to this file is not allowed.');
+} else {
+    // Define a constant to be used for allowing direct access
+    define('ALLOW_DIRECT_ACCESS', true);
 }
+
+require_once 'config.php';
+require_once 'Database.php';
+
 
 // Initialize an array to hold error messages
 $errors = [];
@@ -72,38 +79,30 @@ if (!empty($errors)) {
     exit;
 }
 
-// Підключення до бази SQLite
-$dbFile = 'data/pressure_pulse_log.db';
-if (!file_exists($dbFile)) {
-    require_once 'setup_db_1.php';
+try {
+    /** @var array $config */
+    $database = new Database($config);
+    $conn = $database->getConnection();
+    $database->createTables();
+    $table = $database->getTableName();
+
+    // Збереження даних у базу
+    $stmt = $conn->prepare("INSERT INTO {$table} (user_id, date, time_period, systolic_pressure, diastolic_pressure, pulse) VALUES (?, ?, ?, ?, ?, ?)");
+    $userId = $_SESSION['user_id'] ?: 1;
+    $stmt->execute([$userId, $date, $time_period, $systolic_pressure, $diastolic_pressure, $pulse]);
+
+    // TODO: перевірити чи треба це тут ?
+    if (isset($_SESSION['form_errors']) && !empty($_SESSION['form_errors'])) {
+        // Очищаємо помилки після успішного запису
+        unset($_SESSION['form_errors']);
+    }
+
+    // Переадресація після збереження
+    header("Location: index.php");
+    exit;
+
+} catch (PDOException $e) {
+    die("Помилка підключення до бази даних: " . $e->getMessage());
+} catch (Exception $e) {
+    die("Помилка: " . $e->getMessage());
 }
-$conn = new PDO('sqlite:' . $dbFile);
-
-// Перевіряємо, чи існує таблиця 'pressure_pulse_log', і якщо ні, створюємо її
-$tableCheck = $conn->query("SELECT name FROM sqlite_master WHERE type='table' AND name='pressure_pulse_log'");
-$tableExists = $tableCheck->fetch();
-
-if (!$tableExists) {
-    // Створюємо таблицю, якщо вона не існує
-    $conn->exec("CREATE TABLE IF NOT EXISTS pressure_pulse_log (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        date TEXT NOT NULL,
-        time_period TEXT NOT NULL,
-        systolic_pressure INTEGER NOT NULL,
-        diastolic_pressure INTEGER NOT NULL,
-        pulse INTEGER NOT NULL
-    );");
-}
-
-// Збереження даних у базу
-$stmt = $conn->prepare("INSERT INTO pressure_pulse_log (user_id, date, time_period, systolic_pressure, diastolic_pressure, pulse) VALUES (?, ?, ?, ?, ?, ?)");
-$user_id = 1; // Якщо є авторизація, можна додати унікального користувача
-$stmt->execute([$user_id, $date, $time_period, $systolic_pressure, $diastolic_pressure, $pulse]);
-
-if (isset($_SESSION['form_errors']) && !empty($_SESSION['form_errors'])) {
-    // Очищаємо помилки після успішного запису
-    unset($_SESSION['form_errors']);
-}
-
-header("Location: index.php"); // Переадресація після збереження
