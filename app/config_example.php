@@ -25,6 +25,8 @@ $charset = $_ENV['DB_CHARSET'] ?: 'utf8mb4';
 $tableName = $_ENV['TABLE_NAME'] ?: 'pressure_pulse_log';
 $usersTableName = $_ENV['TABLE_USERS'] ?: 'users';
 
+global $config;
+
 $config = [
     'db' => [
         'driver' => $driver,

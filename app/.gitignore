@@ -8,3 +8,5 @@ config.php
 vendor/*
 # ignore composer.lock
 composer.lock
+# ignore phpStorm IDE config files
+.idea/*

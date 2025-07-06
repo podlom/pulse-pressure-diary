@@ -2,30 +2,47 @@
 
 declare(strict_types=1);
 
-
   /**
    * @author Taras Shkodenko <podlom@gmail.com>
-   * @copyright Shkodenko V. Taras 2024
+   * @copyright Shkodenko V. Taras 2025
    */
 
-  // Define a constant to be used for allowing direct access
-  define('ALLOW_DIRECT_ACCESS', true);
+// Define a constant to be used for allowing direct access
+define('ALLOW_DIRECT_ACCESS', true);
 
-  // Підключення до бази SQLite
-  $dbFile = 'data/pressure_pulse_log.db';
-  if (!file_exists($dbFile)) {
-    require_once 'setup_db_1.php';
-  }
-  $conn = new PDO('sqlite:' . $dbFile);
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/Database.php';
 
-  // Перевіряємо, чи існує таблиця pressure_pulse_log
-  $tableCheck = $conn->query("SELECT name FROM sqlite_master WHERE type='table' AND name='pressure_pulse_log'");
-  $tableExists = $tableCheck->fetch();
+global $config;
 
-  if (!$tableExists) {
-      echo "<p>Таблиця 'pressure_pulse_log' не існує. Створіть запис через <a href='add_data.php'>форму додавання даних</a>.</p>";
-      exit;
-  }
+$db = new Database($config);
+$conn = $db->getConnection();
+
+if (!$conn) {
+    echo "<p>Не вдалося підключитися до бази даних.</p>";
+    exit;
+}
+
+// Перевіряємо, чи існує таблиця
+$tableName = getenv('TABLE_NAME') ?: 'pressure_pulse_log';
+$stmt = $conn->query("SHOW TABLES LIKE '{$tableName}'");
+$tableExists = $stmt->fetch();
+
+if (!$tableExists) {
+    echo "<p>Таблиця '{$tableName}' не існує. Створіть новий запис через <a href='add_data.php'>форму додавання даних</a>.</p>";
+    exit;
+}
+
+if ($config['db']['driver'] == 'sqlite') {
+    // Перевіряємо, чи існує таблиця pressure_pulse_log
+    $tableCheck = $conn->query("SELECT name FROM sqlite_master WHERE type='table' AND name='pressure_pulse_log'");
+    $tableExists = $tableCheck->fetch();
+
+    if (!$tableExists) {
+        echo "<p>Таблиця 'pressure_pulse_log' не існує. Створіть запис через <a href='add_data.php'>форму додавання даних</a>.</p>";
+        exit;
+    }
+}
 
   // Отримуємо дані
   $sql = "SELECT date, time_period, systolic_pressure, diastolic_pressure, pulse FROM pressure_pulse_log WHERE user_id = 1 ORDER BY date DESC";
