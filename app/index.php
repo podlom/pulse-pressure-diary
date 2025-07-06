@@ -62,9 +62,15 @@ declare(strict_types=1);
         <tr>
           <td><?php echo $row['date']; ?></td>
           <td><?php echo $row['time_period']; ?></td>
-          <td><?php echo $row['systolic_pressure']; ?></td>
-          <td><?php echo $row['diastolic_pressure']; ?></td>
-          <td><?php echo $row['pulse']; ?></td>
+		  <td class="<?php echo ($row['systolic_pressure'] > 129) ? 'text-danger font-weight-bold' : ''; ?>">
+			<?php echo $row['systolic_pressure']; ?>
+		  </td>
+		  <td class="<?php echo ($row['diastolic_pressure'] > 84) ? 'text-danger font-weight-bold' : ''; ?>">
+			<?php echo $row['diastolic_pressure']; ?>
+		  </td>
+		  <td class="<?php echo ($row['pulse'] > 90) ? 'text-warning font-weight-bold' : ''; ?>">
+			<?php echo $row['pulse']; ?>
+		  </td>
         </tr>
         <?php endwhile; ?>
       </tbody>
