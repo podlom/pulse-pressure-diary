@@ -8,13 +8,18 @@ session_start();
    * @author Taras Shkodenko <podlom@gmail.com>
    * @copyright Shkodenko V. Taras 2024
    */
-    date_default_timezone_set('Europe/Kyiv');
+date_default_timezone_set('Europe/Kyiv');
 
-    // Define a constant to be used for allowing direct access
-    define('ALLOW_DIRECT_ACCESS', true);
+// Define a constant to be used for allowing direct access
+define('ALLOW_DIRECT_ACCESS', true);
 
-    $currentDate = date("Y-m-d");
-    $currentTime = date("H:i:s");
+$currentDate = date("Y-m-d");
+$currentTime = date("H:i:s");
+
+if (!isset($_SESSION['user_name']) || empty($_SESSION['user_name'])) {
+    header('Location: login.php');
+    exit;
+}
 
 ?>
 
