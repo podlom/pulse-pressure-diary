@@ -63,6 +63,7 @@ if ($config['db']['driver'] == 'sqlite') {
 <body>
   <div class="container">
     <h1>Щоденник показників вимірювання тиску та пульсу</h1>
+    <p>Додати запис через <a href='add_data.php'>форму додавання даних</a>.</p>
     <table>
       <caption>Дані записів щоденника показників тиску та пусльсу</caption>
       <thead>
