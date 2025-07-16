@@ -44,10 +44,10 @@ if ($config['db']['driver'] == 'sqlite') {
     }
 }
 
-  // Отримуємо дані
-  $sql = "SELECT date, time_period, systolic_pressure, diastolic_pressure, pulse FROM pressure_pulse_log WHERE user_id = 1 ORDER BY date DESC";
-  $stmt = $conn->query($sql);
-
+    // Отримуємо дані
+    $userId = $_SESSION['user_id'] ?: 1;
+    $sql = "SELECT date, time_period, systolic_pressure, diastolic_pressure, pulse FROM pressure_pulse_log WHERE user_id = {$userId} ORDER BY date DESC";
+    $stmt = $conn->query($sql);
 
 ?>
 
