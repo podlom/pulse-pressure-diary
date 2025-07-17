@@ -23,6 +23,8 @@ if (!$conn) {
     exit;
 }
 
+$page = isset($_REQUEST['page']) && $_REQUEST['page'] > 0 ? intval($_REQUEST['page']) : 1;
+
 // Перевіряємо, чи існує таблиця
 $tableName = getenv('TABLE_NAME') ?: 'pressure_pulse_log';
 $stmt = $conn->query("SHOW TABLES LIKE '{$tableName}'");
@@ -39,16 +41,31 @@ if ($config['db']['driver'] == 'sqlite') {
     $tableExists = $tableCheck->fetch();
 
     if (!$tableExists) {
-        echo "<p>Таблиця 'pressure_pulse_log' не існує. Створіть запис через <a href='add_data.php'>форму додавання даних</a>.</p>";
+        echo "<p>Таблиця бази даних '" . $db->getTableName() . "' не існує. Створіть перший запис через <a href='add_data.php'>форму додавання даних</a>.</p>";
         exit;
     }
 }
 
-  // Отримуємо дані
-  $sql = "SELECT date, time_period, systolic_pressure, diastolic_pressure, pulse FROM pressure_pulse_log WHERE user_id = 1 ORDER BY date DESC";
-  $stmt = $conn->query($sql);
+    // Pagination setup
+    $limit = 50;
 
+    $offset = ($page - 1) * $limit;
+    // Total count for pagination
+    $totalStmt = $conn->query("SELECT COUNT(id) FROM " . $db->getTableName());
+    $total = $totalStmt->fetchColumn();
+    $totalPages = ceil($total / $limit);
 
+    // Отримуємо дані
+    if (!isset($_SESSION) || empty($_SESSION['user_id'])) {
+        $userId = 1;
+    } else {
+        $userId = $_SESSION['user_id'] ?: 1;
+    }
+    $stmt = $conn->prepare("SELECT date, time_period, systolic_pressure, diastolic_pressure, pulse FROM " . $db->getTableName() . " WHERE user_id = {$userId} ORDER BY date DESC LIMIT :limit OFFSET :offset");
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -56,16 +73,18 @@ if ($config['db']['driver'] == 'sqlite') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Щоденник показників вимірювання тиску та пульсу | записи щоденника</title>
-  
+  <title>Щоденник показників вимірювання тиску та пульсу - сторінка <?php echo $page; ?> | записи щоденника</title>
+
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 </head>
 <body>
   <div class="container">
-    <h1>Щоденник показників вимірювання тиску та пульсу</h1>
+    <h1>Щоденник показників (<?php echo $total; ?>) вимірювання тиску та пульсу</h1>
     <p>Додати запис через <a href='add_data.php'>форму додавання даних</a>.</p>
+
+<?php if (count($records) > 0): ?>
     <table>
-      <caption>Дані записів щоденника показників тиску та пусльсу</caption>
+      <caption>Дані записів (<?php echo $total; ?>) щоденника показників тиску та пусльсу - сторінка <?php echo $page; ?></caption>
       <thead>
         <tr>
           <th>Дата</th>
@@ -76,7 +95,7 @@ if ($config['db']['driver'] == 'sqlite') {
         </tr>
       </thead>
       <tbody>
-        <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
+        <?php foreach ($records as $row): ?>
         <tr>
           <td><?php echo $row['date']; ?></td>
           <td><?php echo $row['time_period']; ?></td>
@@ -90,12 +109,27 @@ if ($config['db']['driver'] == 'sqlite') {
 			<?php echo $row['pulse']; ?>
 		  </td>
         </tr>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
       </tbody>
     </table>
+
+    <!-- Pagination links -->
+    <div style="margin-top: 20px;">
+      <?php if ($page > 1): ?>
+          <a href="?page=<?= $page - 1 ?>">« Попередня сторінка</a>
+      <?php endif; ?>
+      Сторінка <?= $page ?> з <?= $totalPages ?>
+      <?php if ($page < $totalPages): ?>
+          <a href="?page=<?= $page + 1 ?>">Наступна сторінка »</a>
+      <?php endif; ?>
+    </div>
+<?php else: ?>
+    <p>Поки що немає записів.</p>
+<?php endif; ?>
+
     <p>Додати ще один запис через <a href='add_data.php'>форму додавання даних</a>.</p>
   </div>
-  
+
   <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
